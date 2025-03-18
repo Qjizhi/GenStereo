@@ -66,6 +66,12 @@ To run developmental codes such as the example provided in jupyter notebook and 
 pip install -r requirements_dev.txt
 ```
 
+### Clone the repo
+Clone the code of GenStereo and Depth Anything V2.
+```bash
+git clone --recurse-submodules https://github.com/Qjizhi/GenStereo.git
+```
+
 ### Download pretrained models
 
 GenStereo uses pretrained models which consist of both our finetuned models and publicly available third-party ones. Download all the models to `checkpoints` directory or anywhere of your choice. You can do it manually or by the [download_models.sh](scripts/download_models.sh) script.
@@ -73,6 +79,7 @@ GenStereo uses pretrained models which consist of both our finetuned models and 
 #### Download script
 
 ``` shell
+mkdir checkpoints
 bash scripts/download_models.sh 
 ```
 
