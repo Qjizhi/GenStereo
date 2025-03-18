@@ -4,4 +4,3 @@ checkpoints/
 mlruns/
 vis/
 **/.DS_Store
-extern/*
