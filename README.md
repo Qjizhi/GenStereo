@@ -66,6 +66,12 @@ To run developmental codes such as the example provided in jupyter notebook and 
 pip install -r requirements_dev.txt
 ```
 
+### Clone the repo
+Clone the code of GenStereo and Depth Anything V2.
+```bash
+git clone --recurse-submodules https://github.com/Qjizhi/GenStereo.git
+```
+
 ### Download pretrained models
 
 GenStereo uses pretrained models which consist of both our finetuned models and publicly available third-party ones. Download all the models to `checkpoints` directory or anywhere of your choice. You can do it manually or by the [download_models.sh](scripts/download_models.sh) script.
@@ -73,6 +79,7 @@ GenStereo uses pretrained models which consist of both our finetuned models and 
 #### Download script
 
 ``` shell
+mkdir checkpoints
 bash scripts/download_models.sh 
 ```
 
@@ -131,14 +138,11 @@ python app.py
 ## Citation
 
 ``` bibtex
-  @misc{qiao2025genstereoopenworldgenerationstereo,
+  @article{qiao2025genstereo,
     title={GenStereo: Towards Open-World Generation of Stereo Images and Unsupervised Matching},
-    author={Feng Qiao and Zhexiao Xiong and Eric Xing and Nathan Jacobs},
-    year={2025},
-    eprint={2503.12720},
-    archivePrefix={arXiv},
-    primaryClass={cs.CV},
-    url={https://arxiv.org/abs/2503.12720},
+    author={Qiao, Feng and Xiong, Zhexiao and Xing, Eric and Jacobs, Nathan},
+    journal={arXiv preprint arXiv:2503.12720},
+    year={2025}
   }
 ```
 
