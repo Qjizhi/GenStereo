@@ -11,7 +11,6 @@ from torch import Tensor
 from genstereo import GenStereo, AdaptiveFusionLayer
 import ssl
 from huggingface_hub import hf_hub_download
-import spaces
 
 from extern.DAM2.depth_anything_v2.dpt import DepthAnythingV2
 ssl._create_default_https_context = ssl._create_unverified_context
@@ -128,7 +127,6 @@ with tempfile.TemporaryDirectory() as tmpdir:
         src_depth = gr.State()
 
         # Callbacks
-        @spaces.GPU()        
         def cb_mde(image_file: str):
             if not image_file:
                 # Return None if no image is provided (e.g., when file is cleared).
@@ -147,7 +145,6 @@ with tempfile.TemporaryDirectory() as tmpdir:
 
             return image, depth_image, image, depth
 
-        @spaces.GPU()
         def cb_generate(image, depth: Tensor, scale_factor):
             norm_disp = normalize_disp(depth.cuda())
             disp = norm_disp * scale_factor / 100 * IMAGE_SIZE
@@ -179,7 +176,7 @@ with tempfile.TemporaryDirectory() as tmpdir:
             [![Spaces](https://img.shields.io/badge/Spaces-Demo-yellow?logo=huggingface)](https://huggingface.co/spaces/FQiao/GenStereo) &nbsp;
             [![Github](https://img.shields.io/badge/Github-Repo-orange?logo=github)](https://github.com/Qjizhi/GenStereo) &nbsp;
             [![Models](https://img.shields.io/badge/Models-checkpoints-blue?logo=huggingface)](https://huggingface.co/FQiao/GenStereo/tree/main) &nbsp;
-            [![arXiv](https://img.shields.io/badge/arXiv-2405.17251-red?logo=arxiv)](https://arxiv.org/abs/2405.17251)
+            [![arXiv](https://img.shields.io/badge/arXiv-2503.12720-red?logo=arxiv)](https://arxiv.org/abs/2503.12720)
         
             ## Introduction 
             This is an official demo for the paper "[Towards Open-World Generation of Stereo Images and Unsupervised Matching](https://qjizhi.github.io/genstereo)". Given an arbitrary reference image, GenStereo can generate the corresponding right-view image.
@@ -202,7 +199,7 @@ with tempfile.TemporaryDirectory() as tmpdir:
         )
         with gr.Row():
             image_widget = gr.Image(
-                label='Depth', type='filepath',
+                label='Left Image', type='filepath',
                 interactive=False
             )
             depth_widget = gr.Image(label='Estimated Depth', type='pil')
@@ -238,4 +235,4 @@ with tempfile.TemporaryDirectory() as tmpdir:
         )
 
     if __name__ == '__main__':
-        demo.launch()
+        demo.launch(share=True)

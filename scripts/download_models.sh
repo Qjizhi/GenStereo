@@ -22,26 +22,26 @@ function download () {
     done
 }
 
-# download \
-#     image_encoder \
-#     https://huggingface.co/lambdalabs/sd-image-variations-diffusers/resolve/main/image_encoder \
-#     config.json \
-#     pytorch_model.bin
+download \
+    image_encoder \
+    https://huggingface.co/lambdalabs/sd-image-variations-diffusers/resolve/main/image_encoder \
+    config.json \
+    pytorch_model.bin
 
-# download \
-#     sd-vae-ft-mse \
-#     https://huggingface.co/stabilityai/sd-vae-ft-mse/resolve/main \
-#     config.json \
-#     diffusion_pytorch_model.safetensors
+download \
+    sd-vae-ft-mse \
+    https://huggingface.co/stabilityai/sd-vae-ft-mse/resolve/main \
+    config.json \
+    diffusion_pytorch_model.safetensors
 
-# download \
-#     genstereo \
-#     https://huggingface.co/FQiao/GenStereo/resolve/main \
-#     config.json \
-#     denoising_unet.pth \
-#     fusion_layer.pth \
-#     pose_guider.pth \
-#     reference_unet.pth
+download \
+    genstereo \
+    https://huggingface.co/FQiao/GenStereo/resolve/main \
+    config.json \
+    denoising_unet.pth \
+    fusion_layer.pth \
+    pose_guider.pth \
+    reference_unet.pth
 
 # Additional file download using wget to the ckpt_dir
 depth_anything_file="${ckpt_dir}/depth_anything_v2_vitl.pth"
