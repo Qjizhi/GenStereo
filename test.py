@@ -12,8 +12,16 @@ import argparse
 
 from genstereo import GenStereo, AdaptiveFusionLayer
 
-IMAGE_SIZE = 512
-CHECKPOINT_NAME = 'genstereo'
+SD_VERSION = "v2.1"
+if SD_VERSION == "v1.5":
+    IMAGE_SIZE = 512
+    CHECKPOINT_NAME = 'genstereo-v1.5'
+elif SD_VERSION == "v2.1":
+    IMAGE_SIZE = 768
+    CHECKPOINT_NAME = 'genstereo-v2.1'
+else:
+    raise ValueError(f"Unknown SD version: {SD_VERSION}")
+
 DEVICE = 'cuda' if torch.cuda.is_available() else 'mps' if torch.backends.mps.is_available() else 'cpu'
 
 model_configs = {
@@ -48,7 +56,7 @@ genstereo_cfg = dict(
     checkpoint_name=CHECKPOINT_NAME,
     half_precision_weights=True if 'cuda' in DEVICE else False,
 )
-genstereo_nvs = GenStereo(cfg=genstereo_cfg, device=DEVICE)
+genstereo_nvs = GenStereo(cfg=genstereo_cfg, device=DEVICE, sd_version=SD_VERSION)
 
 fusion_model = AdaptiveFusionLayer()
 fusion_checkpoint = join(checkpoint_dir, CHECKPOINT_NAME, 'fusion_layer.pth')

@@ -24,7 +24,7 @@ from .models import (
     UNet3DConditionModel,
     ReferenceAttentionControl
 )
-from .ops import get_viewport_matrix, forward_warper, convert_left_to_right, convert_left_to_right_torch
+from .ops import convert_left_to_right, convert_left_to_right_torch
 
 class AdaptiveFusionLayer(nn.Module):
     def __init__(self):
@@ -47,8 +47,8 @@ class GenStereo():
         pretrained_model_path: str = ''
         checkpoint_name: str = ''
         half_precision_weights: bool = False
-        height: int = 512
-        width: int = 512
+        height: int = 768
+        width: int = 768
         num_inference_steps: int = 50
         guidance_scale: float = 1.5
     cfg: Config
@@ -88,18 +88,28 @@ class GenStereo():
     def __init__(
         self,
         cfg: Optional[Union[dict, DictConfig]] = None,
-        device: Optional[str] = 'cuda:0'
+        device: Optional[str] = 'cuda:0',
+        sd_version: Optional[str] = 'v2.1'
     ) -> None:
         self.cfg = OmegaConf.structured(self.Config(**cfg))
         self.model_path = join(
             self.cfg.pretrained_model_path, self.cfg.checkpoint_name
         )
         self.device = device
+        self.sd_version = sd_version
         self.configure()
         self.transform_pixels = transforms.Compose([
             transforms.ToTensor(),  # Converts image to Tensor
             transforms.Normalize([0.5], [0.5])  # Normalize to [-1, 1]
-        ])        
+        ])
+        if self.sd_version == "v1.5":
+            self.cfg.height = 512
+            self.cfg.width = 512
+        elif self.sd_version == "v2.1":
+            self.cfg.height = 768
+            self.cfg.width = 768
+        else:
+            raise ValueError(f"Unknown SD version: {self.sd_version}")
 
     def configure(self) -> None:
         print(f"Loading GenStereo...")
@@ -108,10 +118,6 @@ class GenStereo():
         self.dtype = (
             torch.float16 if self.cfg.half_precision_weights else torch.float32
         )
-        self.viewport_mtx: Float[Tensor, 'B 4 4'] = get_viewport_matrix(
-            self.cfg.width, self.cfg.height,
-            batch_size=1, device=self.device
-        ).to(self.dtype)
 
         # Load models.
         self.load_models()
@@ -276,6 +282,8 @@ class GenStereo():
         ).image_embeds
 
         image_prompt_embeds = clip_image_embeds.unsqueeze(1)
+        if self.sd_version == "v2.1":
+            image_prompt_embeds = F.pad(image_prompt_embeds, (0, 256), "constant", 0)  # Now shape is (bs, 1, 1024)
         uncond_image_prompt_embeds = torch.zeros_like(image_prompt_embeds)
 
         image_prompt_embeds = torch.cat(

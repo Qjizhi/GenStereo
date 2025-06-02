@@ -23,7 +23,7 @@
 [![Project Site](https://img.shields.io/badge/Project-Web-green)](https://qjizhi.github.io/genstereo) &nbsp;
 [![Spaces](https://img.shields.io/badge/Spaces-Demo-yellow?logo=huggingface)](https://huggingface.co/spaces/FQiao/GenStereo) &nbsp;
 [![Github](https://img.shields.io/badge/Github-Repo-orange?logo=github)](https://github.com/Qjizhi/GenStereo) &nbsp;
-[![Models](https://img.shields.io/badge/Models-checkpoints-blue?logo=huggingface)](https://huggingface.co/FQiao/GenStereo/tree/main) &nbsp;
+[![Models](https://img.shields.io/badge/Models-checkpoints-blue?logo=huggingface)](https://huggingface.co/FQiao/GenStereo-sd2.1/tree/main) &nbsp;
 [![arXiv](https://img.shields.io/badge/arXiv-2503.12720-red?logo=arxiv)](https://arxiv.org/abs/2503.12720)
 
 [Introduction](#introduction)
@@ -36,7 +36,8 @@
 
 ## Updates
 
-- **17/03/2025:** Codes and demos are released
+- **06/02/2025:** Release GenStereo v2.1, which demonstrates better performance and higher resolution! Check out the [demo](https://huggingface.co/spaces/FQiao/GenStereo).
+- **03/17/2025:** Codes and demos are released!
 
 ## Introduction
 
@@ -81,8 +82,9 @@ bash scripts/download_models.sh
 > [!NOTE]
 > Models and checkpoints provided below may be distributed under different licenses. Users are required to check licenses carefully on their behalf.
 
-1. Our finetuned models:
-    - For details about each model, check out the [model card](https://huggingface.co/FQiao/GenStereo).
+1. Our finetuned models, we provide two versions of GenStereo
+    - v1.5: 512px, faster, [model card](https://huggingface.co/FQiao/GenStereo).
+    - v2.1: 768px, better performance, high resolution, takes more time, [model card](https://huggingface.co/FQiao/GenStereo-sd2.1).
 2. Pretrained models:
     - [sd-vae-ft-mse](https://huggingface.co/stabilityai/sd-vae-ft-mse)
       - download `config.json` and `diffusion_pytorch_model.safetensors` to `checkpoints/sd-vae-ft-mse`
@@ -95,7 +97,13 @@ The final `checkpoints` directory must look like this:
 ```
 .
 ├── depth_anything_v2_vitl.pth
-├── genstereo
+├── genstereo-v1.5
+│   ├── config.json
+│   ├── denoising_unet.pth
+│   ├── fusion_layer.pth
+│   ├── pose_guider.pth
+│   └── reference_unet.pth
+├── genstereo-v2.1
 │   ├── config.json
 │   ├── denoising_unet.pth
 │   ├── fusion_layer.pth

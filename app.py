@@ -11,14 +11,13 @@ from torch import Tensor
 from genstereo import GenStereo, AdaptiveFusionLayer
 import ssl
 from huggingface_hub import hf_hub_download
-import spaces
 
 from extern.DAM2.depth_anything_v2.dpt import DepthAnythingV2
 ssl._create_default_https_context = ssl._create_unverified_context
 
-IMAGE_SIZE = 512
+IMAGE_SIZE = 768
 DEVICE = 'cuda' if torch.cuda.is_available() else 'mps' if torch.backends.mps.is_available() else 'cpu'
-CHECKPOINT_NAME = 'genstereo'
+CHECKPOINT_NAME = 'genstereo-v2.1'
 
 def download_models():
     models = [
@@ -39,7 +38,14 @@ def download_models():
         {
             'repo': 'FQiao/GenStereo',
             'sub': None,
-            'dst': 'checkpoints/genstereo',
+            'dst': 'checkpoints/genstereo-v1.5',
+            'files': ['config.json', 'denoising_unet.pth', 'fusion_layer.pth', 'pose_guider.pth', 'reference_unet.pth'],
+            'token': None
+        },
+        {
+            'repo': 'FQiao/GenStereo-sd2.1',
+            'sub': None,
+            'dst': 'checkpoints/genstereo-v2.1',
             'files': ['config.json', 'denoising_unet.pth', 'fusion_layer.pth', 'pose_guider.pth', 'reference_unet.pth'],
             'token': None
         },
@@ -86,13 +92,13 @@ def get_dam2_model():
     return dam2
 
 # GenStereo
-def get_genstereo_model():
+def get_genstereo_model(sd_version):
     genstereo_cfg = dict(
         pretrained_model_path='checkpoints',
         checkpoint_name=CHECKPOINT_NAME,
         half_precision_weights=True
     )
-    genstereo = GenStereo(cfg=genstereo_cfg, device=DEVICE)
+    genstereo = GenStereo(cfg=genstereo_cfg, device=DEVICE, sd_version=sd_version)
     return genstereo
 
 # Adaptive Fusion
@@ -128,14 +134,32 @@ with tempfile.TemporaryDirectory() as tmpdir:
         src_depth = gr.State()
 
         # Callbacks
-        @spaces.GPU()        
-        def cb_mde(image_file: str):
+        def cb_update_sd_version(sd_version_choice):
+            global IMAGE_SIZE, CHECKPOINT_NAME
+            if sd_version_choice == "v1.5":
+                IMAGE_SIZE = 512
+                CHECKPOINT_NAME = 'genstereo-v1.5'
+                print(f"Switched to GenStereo {sd_version_choice}. IMAGE_SIZE: {IMAGE_SIZE}, CHECKPOINT: {CHECKPOINT_NAME}")
+            elif sd_version_choice == "v2.1":
+                IMAGE_SIZE = 768
+                CHECKPOINT_NAME = 'genstereo-v2.1'
+                print(f"Switched to GenStereo {sd_version_choice}. IMAGE_SIZE: {IMAGE_SIZE}, CHECKPOINT: {CHECKPOINT_NAME}")
+            return None, None, None, None, None, None
+
+        def cb_mde(image_file: str, sd_version):
             if not image_file:
                 # Return None if no image is provided (e.g., when file is cleared).
                 return None, None, None, None
 
             image = crop(Image.open(image_file).convert('RGB'))  # Load image using PIL
-            image = image.resize((IMAGE_SIZE, IMAGE_SIZE))
+            if sd_version == "v1.5":
+                image = image.resize((IMAGE_SIZE, IMAGE_SIZE))
+            elif sd_version == "v2.1":
+                image = image.resize((IMAGE_SIZE, IMAGE_SIZE))
+            else:
+                gr.Warning(f"Unknown SD version: {sd_version}. Defaulting to {IMAGE_SIZE}.")
+                image = image.resize((IMAGE_SIZE, IMAGE_SIZE))
+            gr.Info(f"Generating with GenStereo {sd_version} at {IMAGE_SIZE}px resolution.")
 
             image_bgr = cv2.cvtColor(np.array(image), cv2.COLOR_RGB2BGR)
 
@@ -147,12 +171,11 @@ with tempfile.TemporaryDirectory() as tmpdir:
 
             return image, depth_image, image, depth
 
-        @spaces.GPU()
-        def cb_generate(image, depth: Tensor, scale_factor):
+        def cb_generate(image, depth: Tensor, scale_factor, sd_version):
             norm_disp = normalize_disp(depth.cuda())
             disp = norm_disp * scale_factor / 100 * IMAGE_SIZE
 
-            genstereo = get_genstereo_model()
+            genstereo = get_genstereo_model(sd_version)
             fusion_model = get_fusion_model()
 
             renders = genstereo(
@@ -179,30 +202,42 @@ with tempfile.TemporaryDirectory() as tmpdir:
             [![Spaces](https://img.shields.io/badge/Spaces-Demo-yellow?logo=huggingface)](https://huggingface.co/spaces/FQiao/GenStereo) &nbsp;
             [![Github](https://img.shields.io/badge/Github-Repo-orange?logo=github)](https://github.com/Qjizhi/GenStereo) &nbsp;
             [![Models](https://img.shields.io/badge/Models-checkpoints-blue?logo=huggingface)](https://huggingface.co/FQiao/GenStereo/tree/main) &nbsp;
-            [![arXiv](https://img.shields.io/badge/arXiv-2405.17251-red?logo=arxiv)](https://arxiv.org/abs/2405.17251)
+            [![arXiv](https://img.shields.io/badge/arXiv-2503.12720-red?logo=arxiv)](https://arxiv.org/abs/2503.12720)
         
             ## Introduction 
             This is an official demo for the paper "[Towards Open-World Generation of Stereo Images and Unsupervised Matching](https://qjizhi.github.io/genstereo)". Given an arbitrary reference image, GenStereo can generate the corresponding right-view image.
         
             ## How to Use
-
-            1. Upload a reference image to "Left Image"
+            
+            1. Select the GenStereo version
+                - v1.5: 512px, faster.
+                - v2.1: 768px, better performance, high resolution, takes more time.
+            2. Upload a reference image to "Left Image"
                 - You can also select an image from "Examples"
-            3. Hit "Generate a right image" button and check the result
+            3. Hit "Generate a right image" button and check the result.
 
             """
         )
-        file = gr.File(label='Left', file_types=['image'])
-        examples = gr.Examples(
-            examples=['./assets/COCO_val2017_000000070229.jpg',
-                    './assets/COCO_val2017_000000092839.jpg',
-                    './assets/KITTI2015_000003_10.png',
-                    './assets/KITTI2015_000147_10.png'],
-            inputs=file
+
+        sd_version_radio = gr.Radio(
+            label="GenStereo Version",
+            choices=["v1.5", "v2.1"],
+            value="v2.1",
         )
+
+        with gr.Row():
+
+            file = gr.File(label='Left', file_types=['image'])
+            examples = gr.Examples(
+                examples=['./assets/COCO_val2017_000000070229.jpg',
+                        './assets/COCO_val2017_000000092839.jpg',
+                        './assets/KITTI2015_000003_10.png',
+                        './assets/KITTI2015_000147_10.png'],
+                inputs=file
+            )
         with gr.Row():
             image_widget = gr.Image(
-                label='Depth', type='filepath',
+                label='Left Image', type='filepath',
                 interactive=False
             )
             depth_widget = gr.Image(label='Estimated Depth', type='pil')
@@ -226,16 +261,25 @@ with tempfile.TemporaryDirectory() as tmpdir:
             )
 
         # Events
+        sd_version_radio.change(
+            fn=cb_update_sd_version,
+            inputs=sd_version_radio,
+            outputs=[
+                image_widget, depth_widget, # Clear image displays
+                src_image, src_depth,         # Clear internal states
+                warped_widget, gen_widget     # Clear generation outputs
+            ]
+        )        
         file.change(
             fn=cb_mde,
-            inputs=file,
+            inputs=[file, sd_version_radio],
             outputs=[image_widget, depth_widget, src_image, src_depth]
         )
         button.click(
             fn=cb_generate,
-            inputs=[src_image, src_depth, scale_slider],
+            inputs=[src_image, src_depth, scale_slider, sd_version_radio],
             outputs=[warped_widget, gen_widget]
         )
 
     if __name__ == '__main__':
-        demo.launch()
+        demo.launch(share=True)
