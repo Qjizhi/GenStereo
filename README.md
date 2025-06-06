@@ -139,14 +139,15 @@ python app.py
 ## Citation
 
 ``` bibtex
-  @misc{qiao2025genstereoopenworldgenerationstereo,
-    title={GenStereo: Towards Open-World Generation of Stereo Images and Unsupervised Matching},
-    author={Feng Qiao and Zhexiao Xiong and Eric Xing and Nathan Jacobs},
-    year={2025},
-    eprint={2503.12720},
-    archivePrefix={arXiv},
-    primaryClass={cs.CV},
-    url={https://arxiv.org/abs/2503.12720},
+  @article{qiao2025genstereo,
+    author    = {Feng Qiao and Zhexiao Xiong and Eric Xing and Nathan Jacobs},
+    title     = {GenStereo: Towards Open-World Generation of Stereo Images and Unsupervised Matching},
+    journal   = {arXiv preprint},
+    volume    = {arXiv:2503.12720},
+    year      = {2025},
+    url       = {https://doi.org/10.48550/arXiv.2503.12720},
+    archivePrefix = {arXiv},
+    primaryClass = {cs.CV}
   }
 ```
 
