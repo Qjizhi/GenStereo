@@ -1,4 +1,4 @@
-# GenStereo: Towards Open-World Generation of Stereo Images and Unsupervised Matching
+# [ICCV 2025] GenStereo: Towards Open-World Generation of Stereo Images and Unsupervised Matching
 
 
 <div class="is-size-5 publication-authors">
@@ -35,7 +35,7 @@
 ![concept image](./images/teaser_coco.jpg)
 
 ## Updates
-
+- **06/25/2025:** Our work has been accepted by ICCV 2025!
 - **06/02/2025:** Release GenStereo v2.1, which demonstrates better performance and higher resolution! Check out the [demo](https://huggingface.co/spaces/FQiao/GenStereo).
 - **03/17/2025:** Codes and demos are released!
 
