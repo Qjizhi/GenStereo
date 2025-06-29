@@ -20,34 +20,6 @@ from PIL import Image
 import numpy as np
 import cv2
 
-from genstereo.dataset.EXRloader import load_exr
-# from EXRloader import load_exr
-
-
-def convert_left_to_right(left_embed, disparity, left_image, random_ratio=None):
-    # Get the height, width, and channels from the left embedding
-    _, height, width = left_embed.shape
-
-    # Initialize tensors for right_embed, converted_right_image, and mask
-    # right_embed = torch.full_like(left_embed, 255)
-    # converted_right_image = torch.full_like(left_image, 255)
-    right_embed = torch.zeros_like(left_embed)
-    converted_right_image = torch.zeros_like(left_image)
-    mask = torch.ones((height, width), dtype=torch.uint8, device=left_embed.device)
-
-    # Round the disparity and convert to int
-    disparity_rounded = torch.round(disparity).squeeze(0).long()  # [h, w]
-
-    # Loop through the image dimensions and apply the conversion
-    for y in range(height):
-        for x in range(width):
-            new_x = x - disparity_rounded[y, x]
-
-            if 0 <= new_x < width:# and disparity_rounded[y, x] > 0:
-                right_embed[:, y, new_x] = left_embed[:, y, x]
-                converted_right_image[:, y, new_x] = left_image[:, y, x]
-                mask[y, new_x] = 0  # Mark as valid in the mask
-    return right_embed, mask, converted_right_image, disparity
 
 def convert_left_to_right_torch(left_embed, disparity, left_image, random_ratio=None, dataset_name=None):
     """
@@ -125,7 +97,6 @@ class StereoGenDataset(Dataset):
                 self.data += json.load(f)
                 added_length = len(self.data) - previous_length
                 print(f"Loaded {added_length} samples from {json_file}")
-        # self.data = self.data[:10]  # Limit the number of samples to 1M
         self.img_size = img_size
 
         self.embedder = self.get_embedder(2)
@@ -283,84 +254,17 @@ class StereoGenDataset(Dataset):
 
     def getdata(self, idx):
         try:
-            if True:
-                image_left_path = self.data[idx]['image_left'].replace('/home/f.qiao/Active', '/storage1/jacobsn/Active/user_f.qiao')
-                image_right_path = self.data[idx]['image_right'].replace('/home/f.qiao/Active', '/storage1/jacobsn/Active/user_f.qiao')
-                if 'depth_left' in self.data[idx]:
-                    self.data[idx]['depth_left'] = self.data[idx]['depth_left'].replace('/home/f.qiao/Active', '/storage1/jacobsn/Active/user_f.qiao')
-                elif 'disparity_left' in self.data[idx]:
-                    self.data[idx]['disparity_left'] = self.data[idx]['disparity_left'].replace('/home/f.qiao/Active', '/storage1/jacobsn/Active/user_f.qiao')
-            else:
-                image_left_path = self.data[idx]['image_left']
-                image_right_path = self.data[idx]['image_right']
+            image_left_path = self.data[idx]['image_left']
+            image_right_path = self.data[idx]['image_right']
             image_left = Image.open(image_left_path).convert('RGB')
             image_right = Image.open(image_right_path).convert('RGB')
             disparity_left = None
             dataset_name = self.data[idx]["dataset"]
-            if dataset_name == 'TartanAir':
-                depth_left_path = self.data[idx]['depth_left']
-                disparity_left = 80./np.load(depth_left_path)
-            elif dataset_name == 'IRS':
-                depth_left_path = self.data[idx]['depth_left']
-                disparity_left = load_exr(depth_left_path)
-            elif dataset_name == 'DrivingStereo':
-                # grpuond truth disparity
-                disparity_left_path = self.data[idx]['disparity_left']
-                disparity_left = np.array(Image.open(disparity_left_path), dtype=np.float32) / 256.0
-                # pseudo disparity
-                # disparity_left_path = self.data[idx]['disparity_left'].replace('train-disparity-map', 'train-disparity-map-pseudo').replace('.png', '.npy')
-                # disparity_left = np.load(disparity_left_path)
-            elif dataset_name == 'VKITTI2':
+            if dataset_name == 'VKITTI2':
                 depth_left_path = self.data[idx]['depth_left']
                 depth_left = cv2.imread(depth_left_path, cv2.IMREAD_ANYDEPTH | cv2.IMREAD_ANYCOLOR) / 100.
                 # invalid = depth_left >= 65535
-                # print("num_invalid(VKITTI2):", depth_left[invalid].shape[0])
-                disparity_left = 0.532725 * 725.0087 / (depth_left + 1e-5)  # f = 725.0087, b = 0.532725 # meter
-            elif dataset_name == 'InStereo2K':
-                disparity_left_path = self.data[idx]['disparity_left']
-                disparity_left = Image.open(disparity_left_path)
-                disparity_left = np.array(disparity_left).astype(np.float32)
-                disparity_left = disparity_left/100
-            elif dataset_name == 'Sintel':
-                disparity_left_path = self.data[idx]['disparity_left']
-                f_in = np.array(Image.open(disparity_left_path))
-                d_r = f_in[:,:,0].astype('float64')
-                d_g = f_in[:,:,1].astype('float64')
-                d_b = f_in[:,:,2].astype('float64')
-                disparity_left = d_r * 4 + d_g / (2**6) + d_b / (2**14)
-            elif dataset_name == 'crestereo':
-                disparity_left_path = self.data[idx]['disparity_left']
-                disparity_left = cv2.imread(disparity_left_path, cv2.IMREAD_UNCHANGED).astype(np.float32) / 32
-            elif dataset_name == 'Spring':
-                disparity_left_path = self.data[idx]['disparity_left']
-                with h5py.File(disparity_left_path, "r") as f:
-                    disparity_left = np.array(f["disparity"][()]).astype(np.float32)
-                disparity_left = np.ascontiguousarray(disparity_left, dtype=np.float32)[::2, ::2]
-            elif dataset_name == 'Falling_Things':
-                depth_left_path = self.data[idx]['depth_left']
-                depth_left = np.array(Image.open(depth_left_path), dtype=np.float32)
-                disparity_left = 460896 / depth_left # 6cm * 768.1605834960938px * 100 = 460896
-            elif dataset_name == 'SimStereo':
-                depth_left_path = self.data[idx]['disparity_left'].replace('left', 'right')
-                disparity_left = np.load(depth_left_path)
-            elif dataset_name == 'PLT-D3':
-                depth_left_path = self.data[idx]['depth_left'].replace('left', 'right')
-                disparity_left = 0.12 * 800 / np.load(depth_left_path)['arr_0']  # 0.12m * 800 / depth
-            elif dataset_name == 'DynamicReplica':
-                disparity_left_path = self.data[idx]['disparity_left']
-                disparity_left = np.load(disparity_left_path)
-            elif dataset_name == 'InfinigenSV':
-                disparity_left_path = self.data[idx]['disparity_left']
-                disparity_left = np.load(disparity_left_path)
-            elif dataset_name == 'UnrealStereo4K':
-                disparity_left_path = self.data[idx]['disparity_left']
-                disparity_left = np.load(disparity_left_path, mmap_mode='c')
-            elif dataset_name == 'skdataset':
-                disparity_left_path = self.data[idx]['disparity_left']
-                disparity_left = np.load(disparity_left_path)
-            elif dataset_name == 'DIML':
-                disparity_left_path = self.data[idx]['disparity_left']
-                disparity_left = np.load(disparity_left_path)                
+                disparity_left = 0.532725 * 725.0087 / (depth_left + 1e-5)  # f = 725.0087, b = 0.532725 # meter             
             else:
                 print(f"Dataset {self.data[idx]['dataset']} is not supported.")
             return image_left, image_right, disparity_left, dataset_name
@@ -370,8 +274,7 @@ class StereoGenDataset(Dataset):
             return None, None, None, None
 
     def __getitem__(self, idx):
-    # def getitem(self, idx):
-        # 1.Load images and depth maps
+        # 1. Load images and depth maps
         image_left, image_right, disparity_left, dataset_name = self.getdata(idx)
 
         # Retry or skip sample if None is returned
@@ -385,17 +288,16 @@ class StereoGenDataset(Dataset):
         # 3. Generate coords
         grid: Float[Tensor, 'H W C'] = torch.stack(torch.meshgrid(
             torch.arange(self.img_size), torch.arange(self.img_size), indexing='xy'), dim=-1
-        )  # torch.Size([512, 512, 2])
+        )
 
         # 4. Coordinates embedding.
         coords = torch.stack((grid[..., 0]/self.img_size, grid[..., 1]/self.img_size), dim=-1)
         embed = self.embedder(coords)
-        embed = embed.permute(2, 0, 1)  # h w c -> c h w torch.Size([10, 512, 512])
+        embed = embed.permute(2, 0, 1)
+
         # 5. Convert to PyTorch tensors
         image_left_tensor = self.transform_pixels(image_left)
-        image_right_tensor = self.transform_pixels(image_right)
-        # image_left_tensor = torch.tensor(np.array(image_left), dtype=torch.float32).permute(2, 0, 1)
-        # image_right_tensor = torch.tensor(np.array(image_right), dtype=torch.float32).permute(2, 0, 1)        
+        image_right_tensor = self.transform_pixels(image_right)  
         disparity_left_tensor = torch.tensor(disparity_left, dtype=torch.float32).unsqueeze(0)  # Add a channel dimension
 
         # 6. Warp left to right
@@ -409,8 +311,7 @@ class StereoGenDataset(Dataset):
             cv2.imwrite(f"{save_folder}/{dataset_name}_{idx}_mask.png", mask.numpy()*255)
             cv2.imwrite(f"{save_folder}/{dataset_name}_{idx}_right.png", (image_right_tensor.permute(1, 2, 0).numpy()[:, :, ::-1]/2+0.5)*255)
             cv2.imwrite(f"{save_folder}/{dataset_name}_{idx}_converted_right.png", (converted_right.permute(1, 2, 0).numpy()[:, :, ::-1]/2+0.5)*255)
-            # import IPython; IPython.embed()
-        # print("embed.shape:", embed.shape, mask.unsqueeze(0).shape, image_left_tensor.shape, converted_right.shape)
+
         # 7. Add mask to the embeddings
         if self.use_coords and self.use_wapred:
             src_coords_embed = torch.cat(
@@ -422,6 +323,7 @@ class StereoGenDataset(Dataset):
         else:
             src_coords_embed = torch.cat([image_left_tensor, torch.zeros_like(mask.unsqueeze(0), device=mask.device)], dim=0)
             trg_coords_embed = torch.cat([converted_right, mask.unsqueeze(0)], dim=0)
+
         # 8. Get clip image
         clip_image = self.clip_image_processor(
             images=image_left, return_tensors="pt"
@@ -444,25 +346,10 @@ class StereoGenDataset(Dataset):
 if __name__ == "__main__":
     # Load the dataset from JSON file
     json_file = [
-        # "./data/tartanair/TartanAir_dataset_paths.json", \
-        # "./data/IRS/IRS_dataset_paths.json", \
-        # "./data/DrivingStereo/DrivingStereo_dataset_paths.json",\
-        # "./data/VKITTI2/VKITTI2_dataset_paths_2.json", \
-        # "./data/InStereo2K/InStereo2K_dataset_paths_20.json", \
-        # "./data/Sintel/Sintel_dataset_paths_20.json", \
-        # "./data/crestereo/crestereo_dataset_paths.json", \
-        # "./data/Spring/Spring_dataset_paths_10.json", \
-        # "./data/Falling_Things/Falling_Things_dataset_paths.json", \
-        # "./data/SimStereo/SimStereo_dataset_paths.json", \
-        # "./data/DynamicReplica/DynamicReplica_dataset_paths.json", \
-        # "./data/PLT-D3/PLT-D3_dataset_paths_10.json", \
-        # "./data/InfinigenSV/InfinigenSV_dataset_paths_2.json", \
-        "./data/skdataset/sk_dataset_paths.json", \
-        # "./data/DIML_Outdoor/DIML_Outdoor_dataset_paths.json", \
-        # "./data/UnrealStereo4K/UnrealStereo4K_dataset_paths_5.json", \
+        "./data/VKITTI2/VKITTI2_dataset_paths_2.json",
         ]
 
-    dataset = StereoGenDataset(json_file, img_size=512)
+    dataset = StereoGenDataset(json_file, img_size=768)
     print(f"Number of entries in the dataset: {len(dataset)}")
 
     # Sample 20 random entries

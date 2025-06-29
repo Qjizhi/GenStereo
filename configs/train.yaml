@@ -1,0 +1,65 @@
+data:
+  train_bs: 2
+  img_size: 768
+  meta_paths:
+    - "./data/VKITTI2/VKITTI2_dataset_paths_2.json" # verified, syn, 42520
+  sample_margin: 30
+  drop_ratio: 0.1
+
+solver:
+  gradient_accumulation_steps: 1
+  mixed_precision: 'fp16'
+  enable_xformers_memory_efficient_attention: True 
+  gradient_checkpointing: False 
+  max_train_steps: 1000000
+  max_grad_norm: 1.0
+  pixel_loss: True
+
+  # lr
+  learning_rate: 1.0e-5 
+  scale_lr: False
+  lr_warmup_steps: 1
+  lr_scheduler: 'constant'
+  # lr_warmup_steps: 1000  # Increased warmup steps
+  # lr_scheduler: 'cosine'  # Decay the learning rate over time
+
+  # optimizer
+  use_8bit_adam: False 
+  adam_beta1: 0.9
+  adam_beta2: 0.999
+  adam_weight_decay:  1.0e-2
+  adam_epsilon: 1.0e-8
+
+val:
+  validation_steps: 1000000
+
+
+noise_scheduler_kwargs:
+  num_train_timesteps: 1000
+  beta_start:          0.00085
+  beta_end:            0.012
+  beta_schedule:       "scaled_linear"
+  steps_offset:        1
+  clip_sample:         false
+
+base_model_path: './pretrained/stable-diffusion-2-1'
+vae_model_path: './pretrained/sd-vae-ft-mse' # freeze
+image_encoder_path: './pretrained/sd-image-variations-diffusers/image_encoder' # freeze
+use_coords: True
+use_wapred: True
+add_fusion: True
+
+
+weight_dtype: 'fp16'  # [fp16, fp32]
+uncond_ratio: 0.1
+noise_offset: 0.05
+snr_gamma: 5.0
+enable_zero_snr: True 
+
+seed: 12580
+resume_from_checkpoint: ''
+checkpointing_steps: 2000
+save_model_epoch_interval: 1
+exp_name: 'genstereo'
+output_dir: './genstereo'
+debug: False

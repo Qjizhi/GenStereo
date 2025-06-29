@@ -29,12 +29,14 @@
 [Introduction](#introduction)
 | [Demo](#demo)
 | [How to use](#how-to-use)
+| [Train](#train)
 | [Citation](#citation)
 | [Acknowledgements](#acknowledgements)
 
 ![concept image](./images/teaser_coco.jpg)
 
 ## Updates
+- **06/28/2025:** Training code release! Check out [Train_Guide.md](./Trian_Guide.md)
 - **06/25/2025:** Our work has been accepted by ICCV 2025!
 - **06/02/2025:** Release GenStereo v2.1, which demonstrates better performance and higher resolution! Check out the [demo](https://huggingface.co/spaces/FQiao/GenStereo).
 - **03/17/2025:** Codes and demos are released!
@@ -135,6 +137,9 @@ Or you can just visit [Spaces](https://huggingface.co/spaces/FQiao/GenStereo) ho
 ```shell
 python app.py
 ```
+
+## Train
+Please read [Train_Guide.md](./Trian_Guide.md).
 
 ## Citation
 
