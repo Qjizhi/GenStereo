@@ -12,13 +12,11 @@ from PIL import Image
 import argparse
 from tqdm import tqdm
 
-from genwarp import GenWarp
-
-from train import AdaptiveFusionLayer
+from genstereo import GenStereo, AdaptiveFusionLayer
 
 # --- Constants and Model Setup ---
 PATCH_SIZE = 768 # Using a constant for patch size
-CHECKPOINT_NAME = 'mar24_1_all_alpha1_sd2-1/epoch5'
+CHECKPOINT_NAME = 'genstereo-v2.1'
 DEVICE = 'cuda' if torch.cuda.is_available() else 'mps' if torch.backends.mps.is_available() else 'cpu'
 
 # --- Model Configurations ---
@@ -52,14 +50,14 @@ dam2.load_state_dict(torch.load(dam2_checkpoint, map_location='cpu'))
 dam2 = dam2.to(DEVICE).eval()
 print("Depth model loaded.")
 
-# --- Load GenWarp and Fusion Models ---
-print("Loading GenWarp and Fusion models...")
+# --- Load GenStereo and Fusion Models ---
+print("Loading GenStereo and Fusion models...")
 genstereo_cfg = dict(
     pretrained_model_path=checkpoint_dir,
     checkpoint_name=CHECKPOINT_NAME,
     half_precision_weights=False, #True if 'cuda' in DEVICE else False,
 )
-genstereo_nvs = GenWarp(cfg=genstereo_cfg, device=DEVICE)
+genstereo_nvs = GenStereo(cfg=genstereo_cfg, device=DEVICE)
 
 fusion_model = AdaptiveFusionLayer()
 fusion_checkpoint = join(checkpoint_dir, CHECKPOINT_NAME, 'fusion_layer.pth')
