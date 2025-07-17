@@ -146,7 +146,7 @@ Please read [Train_Guide.md](./Trian_Guide.md).
 ``` bibtex
   @inproceedings{qiao2025genstereo,
     author    = {Qiao, Feng and Xiong, Zhexiao and Xing, Eric and Jacobs, Nathan},
-    title     = {{Towards Open-World Generation of Stereo Images and Unsupervised Matching}},
+    title     = {Towards Open-World Generation of Stereo Images and Unsupervised Matching},
     booktitle = {Proceedings of the {IEEE/CVF} International Conference on Computer Vision ({ICCV})},
     year      = {2025},
     eprint    = {2503.12720},
