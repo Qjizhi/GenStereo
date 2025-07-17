@@ -1,4 +1,4 @@
-# [ICCV 2025] GenStereo: Towards Open-World Generation of Stereo Images and Unsupervised Matching
+# [ICCV 2025] Towards Open-World Generation of Stereo Images and Unsupervised Matching
 
 
 <div class="is-size-5 publication-authors">
@@ -43,7 +43,7 @@
 
 ## Introduction
 
-This repository is an official implementation for the paper "[GenStereo:  Towards Open-World Generation of Stereo Images and Unsupervised Matching](https://qjizhi.github.io/genstereo/)". Given an arbitrary reference image, GenStereo generates the corresponding right-view image by enforcing constraints at three levels: input (disparity-aware coordinate and warped-image embeddings), feature (cross-view attention), and output (pixel-level loss with adaptive fusion). These constraints yield stereo images with geometric consistency and visual quality. Our methods demonstrate state-of-the-art performance in both stereo image generation and unsupervised stereo matching.
+This repository is an official implementation for the paper "[Towards Open-World Generation of Stereo Images and Unsupervised Matching](https://qjizhi.github.io/genstereo/)". Given an arbitrary reference image, GenStereo generates the corresponding right-view image by enforcing constraints at three levels: input (disparity-aware coordinate and warped-image embeddings), feature (cross-view attention), and output (pixel-level loss with adaptive fusion). These constraints yield stereo images with geometric consistency and visual quality. Our methods demonstrate state-of-the-art performance in both stereo image generation and unsupervised stereo matching.
 
 ![Framework](./images/framework.jpg)
 
@@ -144,15 +144,14 @@ Please read [Train_Guide.md](./Trian_Guide.md).
 ## Citation
 
 ``` bibtex
-  @article{qiao2025genstereo,
-    author    = {Feng Qiao and Zhexiao Xiong and Eric Xing and Nathan Jacobs},
-    title     = {GenStereo: Towards Open-World Generation of Stereo Images and Unsupervised Matching},
-    journal   = {arXiv preprint},
-    volume    = {arXiv:2503.12720},
+  @inproceedings{qiao2025genstereo,
+    author    = {Qiao, Feng and Xiong, Zhexiao and Xing, Eric and Jacobs, Nathan},
+    title     = {{Towards Open-World Generation of Stereo Images and Unsupervised Matching}},
+    booktitle = {Proceedings of the {IEEE/CVF} International Conference on Computer Vision ({ICCV})},
     year      = {2025},
-    url       = {https://doi.org/10.48550/arXiv.2503.12720},
-    archivePrefix = {arXiv},
-    primaryClass = {cs.CV}
+    eprint    = {2503.12720},
+    archiveprefix = {arXiv},
+    primaryclass = {cs.CV}
   }
 ```
 
