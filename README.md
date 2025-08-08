@@ -36,6 +36,7 @@
 ![concept image](./images/teaser_coco.jpg)
 
 ## Updates
+- **08/08/2025:** Update evaluation code.
 - **06/28/2025:** Training code release! Check out [Train_Guide.md](./Trian_Guide.md)
 - **06/25/2025:** Our work has been accepted by ICCV 2025!
 - **06/02/2025:** Release GenStereo v2.1, which demonstrates better performance and higher resolution! Check out the [demo](https://huggingface.co/spaces/FQiao/GenStereo).
@@ -140,6 +141,16 @@ python app.py
 
 ## Train
 Please read [Train_Guide.md](./Trian_Guide.md).
+
+## Evaluation
+- prepare [kitti 2015](https://www.cvlibs.net/datasets/kitti/eval_scene_flow.php?benchmark=stereo) and [middlebury](https://vision.middlebury.edu/stereo/data/scenes2014/) dataset.
+- run the following command to evaluate.
+  ```shell
+  # kitti 2015
+  python evaluation.py --dataset kitti15 --path-root /path/to/kitti15 --image-list-file ./data/kitti/kitti15_train200.txt
+  # middlebury
+  python evaluation.py --dataset middlebury --path-root /path/to/middlebury_scenes2014
+  ```
 
 ## Citation
 
