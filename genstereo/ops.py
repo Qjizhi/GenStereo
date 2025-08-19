@@ -72,7 +72,9 @@ def convert_left_to_right_torch(left_embed, disparity, left_image, random_ratio=
     # Iterate over width and process each column for all rows
     for x in range(width):
         new_x = x - disparity_rounded[:, x]
-
+        # TODO: add a condition
+        # if GT valid_indices = (new_x >= 0) & (new_x < width) & (disparity_rounded[:, x] > 0)
+        # else valid_indices = (new_x >= 0) & (new_x < width)
         valid_indices = (new_x >= 0) & (new_x < width) #& (disparity_rounded[:, x] > 0)
         valid_new_x = new_x[valid_indices]
         valid_y = torch.arange(height, device=left_embed.device)[valid_indices]
