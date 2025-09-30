@@ -30,6 +30,7 @@
 | [Demo](#demo)
 | [How to use](#how-to-use)
 | [Train](#train)
+| [Evaluation](#evaluation)
 | [Citation](#citation)
 | [Acknowledgements](#acknowledgements)
 
